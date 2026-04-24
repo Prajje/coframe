@@ -60,7 +60,6 @@
     </div>
   </section>
 
-  <div class="reorderable-stack" id="reorderable-stack">
   <!-- ================= METRIC BAND ================= -->
   <section class="metric-band" data-section="metrics" data-section-label="Key Metrics">
     <div class="metric">
@@ -105,16 +104,16 @@
           <p class="node-org">Cogniac Corporation</p>
           <p class="node-vertical">Casino Gaming</p>
           <ul>
-            <li>Shipped a vision-powered, <strong>AI-automated player rating system at the edge</strong> across 100+ live Baccarat tables in Asia.</li>
-            <li>Engineered an end-to-end <strong>smart blackjack table</strong>: segmentation card detection, <strong>ViT</strong> suit/rank classification, <strong>YOLO</strong> point-count chip detection, K-Means player–card association, customizable game-state logic, dynamic side bets, calibration workflows. Work contributed to <strong>3 provisional patents.</strong></li>
-            <li>Optimized inference to run <strong>3+ tables per Cogniac Edgeflow device</strong> — doubling revenue from this client.</li>
-            <li>Built an <strong>LLM-powered post-game analytics dashboard</strong> — enabling pit bosses to place top-performing dealers on high-stakes tables, cutting fraud-related losses.</li>
+            <li data-card-ref="player-rating">Shipped a vision-powered, <strong>AI-automated player rating system at the edge</strong> across 100+ live Baccarat tables in Asia.</li>
+            <li data-card-ref="blackjack">Engineered an end-to-end <strong>smart blackjack table</strong>: segmentation card detection, <strong>ViT</strong> suit/rank classification, <strong>YOLO</strong> point-count chip detection, K-Means player–card association, customizable game-state logic, dynamic side bets, calibration workflows. Work contributed to <strong>3 provisional patents.</strong></li>
+            <li data-card-ref="player-rating">Optimized inference to run <strong>3+ tables per Cogniac Edgeflow device</strong> — doubling revenue from this client.</li>
+            <li data-card-ref="player-rating">Built an <strong>LLM-powered post-game analytics dashboard</strong> — enabling pit bosses to place top-performing dealers on high-stakes tables, cutting fraud-related losses.</li>
           </ul>
           <p class="node-vertical">Manufacturing &amp; Railway</p>
           <ul>
-            <li>Architected a new segmentation pipeline into the Cogniac platform and fine-tuned <strong>RF-DETR-Seg, SegFormer, ViT, SAM, DINO</strong> on manufacturing inspection workflows — <strong>70%+ defect-detection lift</strong> on targeted use cases.</li>
-            <li>Fine-tuned <strong>YOLACT</strong> for real-time crack detection on railways — helping a client achieve their best safety record in 2023.</li>
-            <li>Built a <strong>multi-agent, human-in-the-loop annotation</strong> pipeline — <strong>80% reduction in annotation time</strong> and <strong>30% label-quality improvement</strong> on two tested workflows.</li>
+            <li data-card-ref="mfg-railway">Architected a new segmentation pipeline into the Cogniac platform and fine-tuned <strong>RF-DETR-Seg, SegFormer, ViT, SAM, DINO</strong> on manufacturing inspection workflows — <strong>70%+ defect-detection lift</strong> on targeted use cases.</li>
+            <li data-card-ref="mfg-railway">Fine-tuned <strong>YOLACT</strong> for real-time crack detection on railways — helping a client achieve their best safety record in 2023.</li>
+            <li data-card-ref="hitl-agent">Built a <strong>multi-agent, human-in-the-loop annotation</strong> pipeline — <strong>80% reduction in annotation time</strong> and <strong>30% label-quality improvement</strong> on two tested workflows.</li>
             <li>Architected platform-wide <strong>post-training quantization</strong> (FP32 / FP16 → INT8) — <strong>2× lower inference latency</strong> with no meaningful accuracy loss.</li>
           </ul>
         </div>
@@ -146,9 +145,9 @@
           <h3>Computer Vision Intern</h3>
           <p class="node-org">IntelinAir</p>
           <ul>
-            <li>Built <strong>large-scale pineapple flower counting</strong> from aerial imagery via deep density estimation on a U-Net backbone — deployed on <strong>AWS.</strong> Published in Frontiers in Plant Science.</li>
-            <li>Applied <strong>weakly supervised learning</strong> via relative ranking of density maps to leverage unlabeled data.</li>
-            <li>Detected cancerous cells in <strong>gigapixel pathology images</strong> — preprocessed at two zoom levels, encoded via Inception V3, decoded via Conv2D-Transpose. <strong>94.71% accuracy.</strong></li>
+            <li data-card-ref="pineapple">Built <strong>large-scale pineapple flower counting</strong> from aerial imagery via deep density estimation on a U-Net backbone — deployed on <strong>AWS.</strong> Published in Frontiers in Plant Science.</li>
+            <li data-card-ref="pineapple">Applied <strong>weakly supervised learning</strong> via relative ranking of density maps to leverage unlabeled data.</li>
+            <li data-card-ref="pathology">Detected cancerous cells in <strong>gigapixel pathology images</strong> — preprocessed at two zoom levels, encoded via Inception V3, decoded via Conv2D-Transpose. <strong>94.71% accuracy.</strong></li>
           </ul>
         </div>
       </li>
@@ -252,19 +251,6 @@
         </div>
       </article>
     </div>
-  </section>
-
-  <!-- ================= ATTENTION STATS ================= -->
-  <section class="attention-stats" id="attention" data-section="attention" data-section-label="Attention Stats">
-    <div class="section-head">
-      <p class="section-label">Your attention</p>
-      <h2 class="section-title">What caught your <span class="accent">eye.</span></h2>
-      <p class="stats-note"><span class="stats-note-mark">//</span> tracked locally in your browser. no data leaves this page.</p>
-    </div>
-    <ul class="stats-bars" id="stats-bars" aria-live="polite">
-      <!-- rows injected by main.js -->
-    </ul>
-    <p class="stats-empty" id="stats-empty">Hover over a card in <strong>Signature Work</strong> to populate your signal.</p>
   </section>
 
   <!-- ================= SKILLS + PUBS ================= -->
@@ -382,7 +368,18 @@
     </div>
   </section>
 
-  </div><!-- /.reorderable-stack -->
+  <!-- ================= ATTENTION STATS ================= -->
+  <section class="attention-stats" id="attention" data-section="attention" data-section-label="Attention Stats">
+    <div class="section-head">
+      <p class="section-label">Your attention</p>
+      <h2 class="section-title">What caught your <span class="accent">eye.</span></h2>
+      <p class="stats-note"><span class="stats-note-mark">//</span> tracked locally in your browser. the top-ranked card has highlighted the matching bullets in <strong>Experience</strong>.</p>
+    </div>
+    <ul class="stats-bars" id="stats-bars" aria-live="polite">
+      <!-- rows injected by main.js -->
+    </ul>
+    <p class="stats-empty" id="stats-empty">Hover over a card in <strong>Signature Work</strong> to populate your signal.</p>
+  </section>
 
   <!-- ================= CLOSING ================= -->
   <section class="closing" id="resume" data-section="closing" data-section-label="Resume &amp; Contact">

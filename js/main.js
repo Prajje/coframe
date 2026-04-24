@@ -246,13 +246,34 @@
 
       // Engaged state: only the leader with ≥ threshold hover gets engaged.
       cards.forEach(c => c.classList.remove('engaged'));
+      let topId = null;
       if (hasAny) {
         const top = entries[0];
+        topId = top.id;
         if (top.ms >= ENGAGE_THRESHOLD_MS) {
           const el = cardsById.get(top.id);
           if (el) el.classList.add('engaged');
         }
       }
+      // Highlight matching bullets in the Experience timeline
+      highlightMatchingBullets(topId);
+    };
+
+    // Bullet-highlight: mark timeline bullets that correspond to the top card.
+    // Previous matches are removed; newly matched get a one-shot flash class.
+    const allBullets = document.querySelectorAll('.node-body li[data-card-ref]');
+    const FLASH_MS = 1800;
+    const highlightMatchingBullets = (cardId) => {
+      allBullets.forEach(li => {
+        const isMatch = cardId && li.dataset.cardRef === cardId;
+        const was = li.classList.contains('attention-match');
+        if (isMatch && !was) {
+          li.classList.add('attention-match', 'attention-flash');
+          setTimeout(() => li.classList.remove('attention-flash'), FLASH_MS);
+        } else if (!isMatch && was) {
+          li.classList.remove('attention-match', 'attention-flash');
+        }
+      });
     };
 
     // Per-card hover tracking with live dwell display
@@ -309,12 +330,8 @@
 
   // ---------- Section attention tracking + Live Signal HUD ----------
   const sections = document.querySelectorAll('section[data-section]');
-  const stack = document.getElementById('reorderable-stack');
   if (sections.length) {
     const SECTION_STORE = 'coframe-section-stats';
-    const ORDER_STORE = 'coframe-layout-order';
-    const REORDERABLE = ['metrics', 'experience', 'work', 'attention', 'skills', 'dear'];
-    const ORIGINAL_ORDER = REORDERABLE.slice();
 
     const loadObj = (key) => {
       try { return JSON.parse(sessionStorage.getItem(key) || '{}'); } catch (_) { return {}; }
@@ -324,10 +341,6 @@
     };
 
     const sectionTotals = loadObj(SECTION_STORE);
-    const layoutState = loadObj(ORDER_STORE); // { optimized: bool, order: [ids] }
-
-    const sectionById = new Map();
-    sections.forEach(s => sectionById.set(s.dataset.section, s));
 
     const fmtMs = (ms) => {
       const s = ms / 1000;
@@ -352,9 +365,6 @@
       '</div>' +
       '<div class="hud-body">' +
         '<ul class="hud-bars" id="hud-bars"></ul>' +
-        '<div class="hud-cta-row">' +
-          '<button class="hud-cta" id="hud-optimize">Optimize layout</button>' +
-        '</div>' +
       '</div>';
     document.body.appendChild(hud);
 
@@ -370,7 +380,6 @@
     };
 
     const barsList = hud.querySelector('#hud-bars');
-    const optimizeBtn = hud.querySelector('#hud-optimize');
     const dotBtn = hud.querySelector('.hud-dot-btn');
 
     // HUD is gated on the user having scrolled through every section.
@@ -483,75 +492,6 @@
         activeSection = null; activeStart = null; stopRaf(); renderHUD();
       });
     });
-
-    // ---- Reorder logic ----
-    const applyOrder = (order) => {
-      if (!stack) return;
-      order.forEach(id => {
-        const el = sectionById.get(id);
-        if (el && el.parentElement === stack) stack.appendChild(el);
-      });
-    };
-
-    const optimizeLayout = () => {
-      const weights = REORDERABLE.map(id => ({ id, ms: sectionTotals[id] || 0 }));
-      weights.sort((a, b) => b.ms - a.ms);
-      const newOrder = weights.map(w => w.id);
-
-      const doReorder = () => {
-        applyOrder(newOrder);
-        layoutState.optimized = true;
-        layoutState.order = newOrder;
-        saveObj(ORDER_STORE, layoutState);
-        optimizeBtn.textContent = 'Restore original';
-        optimizeBtn.classList.add('secondary');
-        showToast('Layout optimized for your attention ✓');
-      };
-
-      if (prefersReduced) { doReorder(); return; }
-      stack.classList.add('reordering');
-      setTimeout(() => {
-        doReorder();
-        requestAnimationFrame(() => stack.classList.remove('reordering'));
-      }, 450);
-    };
-
-    const restoreLayout = () => {
-      const doRestore = () => {
-        applyOrder(ORIGINAL_ORDER);
-        layoutState.optimized = false;
-        layoutState.order = ORIGINAL_ORDER.slice();
-        saveObj(ORDER_STORE, layoutState);
-        optimizeBtn.textContent = 'Optimize layout';
-        optimizeBtn.classList.remove('secondary');
-        showToast('Layout restored');
-      };
-      if (prefersReduced) { doRestore(); return; }
-      stack.classList.add('reordering');
-      setTimeout(() => {
-        doRestore();
-        requestAnimationFrame(() => stack.classList.remove('reordering'));
-      }, 450);
-    };
-
-    optimizeBtn.addEventListener('click', () => {
-      if (layoutState.optimized) restoreLayout();
-      else {
-        const total = Object.values(sectionTotals).reduce((a, b) => a + b, 0);
-        if (total < 300) {
-          showToast('Hover a section to build some signal first');
-          return;
-        }
-        optimizeLayout();
-      }
-    });
-
-    // Restore prior optimized order if the user had one this session
-    if (layoutState.optimized && Array.isArray(layoutState.order)) {
-      applyOrder(layoutState.order);
-      optimizeBtn.textContent = 'Restore original';
-      optimizeBtn.classList.add('secondary');
-    }
 
     // Commit any in-flight section dwell on unload
     window.addEventListener('beforeunload', () => {

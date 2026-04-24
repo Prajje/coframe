@@ -1239,43 +1239,6 @@ section { position: relative; z-index: 1; }
   }
 }
 
-/* Match label — subtle floating indicator showing the feature is live */
-.node-body li.attention-match::after {
-  content: "TOP SIGNAL";
-  position: absolute;
-  top: 50%;
-  right: 12px;
-  transform: translateY(-50%);
-  font-family: "JetBrains Mono", monospace;
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  color: var(--cf-green);
-  padding: 3px 7px;
-  border: 1px solid rgba(74, 227, 135, 0.45);
-  border-radius: 3px;
-  background: rgba(74, 227, 135, 0.08);
-  opacity: 0;
-  animation: top-signal-fade-in 0.5s ease-out 0.2s forwards, top-signal-pulse 2.2s ease-in-out 0.7s infinite;
-  pointer-events: none;
-  white-space: nowrap;
-  z-index: 2;
-}
-@keyframes top-signal-fade-in {
-  from { opacity: 0; transform: translateY(-50%) translateX(6px); }
-  to   { opacity: 1; transform: translateY(-50%) translateX(0); }
-}
-@keyframes top-signal-pulse {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(74, 227, 135, 0.35);
-    border-color: rgba(74, 227, 135, 0.45);
-  }
-  50% {
-    box-shadow: 0 0 14px 0 rgba(74, 227, 135, 0.55);
-    border-color: rgba(74, 227, 135, 0.8);
-  }
-}
-
 /* One-shot BURST on transition into attention-match */
 .node-body li.attention-flash {
   animation:
@@ -1308,19 +1271,12 @@ section { position: relative; z-index: 1; }
   100% { transform: translateX(0); }
 }
 
-/* On screens too narrow for the side label, hide it but keep the rest */
-@media (max-width: 720px) {
-  .node-body li.attention-match::after { display: none; }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .node-body li.attention-match,
   .node-body li.attention-flash,
   .node-body li.attention-match::before,
-  .node-body li.attention-match::after,
   .node-body li.attention-flash > .burst {
     animation: none !important;
-    transform: translateY(-50%) !important;
   }
   .node-body li.attention-match {
     background-image: none;

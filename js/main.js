@@ -373,9 +373,31 @@
     const optimizeBtn = hud.querySelector('#hud-optimize');
     const dotBtn = hud.querySelector('.hud-dot-btn');
 
-    // HUD appears after 3s unless dismissed
-    if (sessionStorage.getItem('coframe-hud-dismissed') !== '1') {
-      setTimeout(() => hud.classList.add('visible'), 3000);
+    // HUD is gated on the user having scrolled through every section.
+    // Track "seen" via IntersectionObserver; reveal only once every section
+    // has been in view at ≥40% visibility.
+    const revealHUD = () => {
+      if (sessionStorage.getItem('coframe-hud-dismissed') === '1') return;
+      hud.classList.add('visible');
+    };
+    if (sessionStorage.getItem('coframe-seen-all') === '1') {
+      // Already seen everything this session — reveal shortly after load
+      setTimeout(revealHUD, 400);
+    } else {
+      const seen = new Set();
+      const seenObs = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting && e.intersectionRatio >= 0.4) {
+            seen.add(e.target.dataset.section);
+          }
+        });
+        if (seen.size >= sections.length) {
+          seenObs.disconnect();
+          sessionStorage.setItem('coframe-seen-all', '1');
+          setTimeout(revealHUD, 300);
+        }
+      }, { threshold: [0, 0.4, 0.8] });
+      sections.forEach(s => seenObs.observe(s));
     }
     hud.querySelector('[data-action="min"]').addEventListener('click', () => {
       hud.classList.add('minimized');
@@ -515,10 +537,9 @@
     optimizeBtn.addEventListener('click', () => {
       if (layoutState.optimized) restoreLayout();
       else {
-        // Require at least 1.5s total signal before allowing optimize
         const total = Object.values(sectionTotals).reduce((a, b) => a + b, 0);
-        if (total < 1500) {
-          showToast('Hover through the page first to build signal');
+        if (total < 300) {
+          showToast('Hover a section to build some signal first');
           return;
         }
         optimizeLayout();

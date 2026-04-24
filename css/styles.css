@@ -71,6 +71,97 @@ section { position: relative; z-index: 1; }
 }
 .section-label-light { color: rgba(255,255,255,0.55); }
 .eyebrow-sep { opacity: 0.4; margin: 0 2px; }
+
+/* ------------------ Hero eyebrow — pill badge ------------------ */
+.hero-eyebrow {
+  padding: 9px 18px 9px 14px;
+  border: 1px solid rgba(74, 227, 135, 0.32);
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(74,227,135,0.10) 0%, rgba(74,227,135,0.02) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.04),
+    0 0 0 1px rgba(74, 227, 135, 0.08),
+    0 0 30px -6px rgba(74, 227, 135, 0.35);
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.82);
+  gap: 9px;
+  margin-bottom: 28px;
+  transition: border-color 0.3s var(--ease), box-shadow 0.3s var(--ease), transform 0.3s var(--ease);
+  position: relative;
+  overflow: hidden;
+}
+.hero-eyebrow:hover {
+  border-color: rgba(74, 227, 135, 0.6);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.06),
+    0 0 0 1px rgba(74, 227, 135, 0.25),
+    0 0 44px -6px rgba(74, 227, 135, 0.55);
+  transform: translateY(-1px);
+}
+/* Soft sweep highlight */
+.hero-eyebrow::after {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0;
+  left: -40%;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(74,227,135,0.18), transparent);
+  pointer-events: none;
+  animation: eyebrow-sweep 4.4s ease-in-out infinite;
+}
+@keyframes eyebrow-sweep {
+  0% { left: -40%; }
+  55%, 100% { left: 120%; }
+}
+.hero-eyebrow .eyebrow-name {
+  color: rgba(255,255,255,0.95);
+  font-weight: 600;
+}
+.hero-eyebrow .eyebrow-sep {
+  display: inline-block;
+  width: 1px;
+  height: 14px;
+  background: rgba(255,255,255,0.22);
+  margin: 0 1px;
+  opacity: 1;
+}
+.hero-eyebrow .eyebrow-built {
+  color: rgba(255,255,255,0.6);
+  font-weight: 500;
+}
+.hero-eyebrow .cf-word {
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-size: 13.5px;
+}
+.cf-shimmer {
+  background: linear-gradient(90deg, #4AE387 0%, #B6FBCF 35%, #4AE387 55%, #8CFAB5 75%, #4AE387 100%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: cf-shimmer 3.6s linear infinite;
+}
+@keyframes cf-shimmer {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 250% 50%; }
+}
+@media (max-width: 540px) {
+  .hero-eyebrow { font-size: 12px; gap: 7px; padding: 8px 14px 8px 12px; }
+  .hero-eyebrow .cf-word { font-size: 12.5px; letter-spacing: 0.2em; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-eyebrow::after { animation: none; left: -40%; }
+  .cf-shimmer {
+    animation: none;
+    background: none;
+    -webkit-text-fill-color: var(--cf-green);
+    color: var(--cf-green);
+  }
+}
 .eyebrow-dot {
   display: inline-block;
   width: 8px; height: 8px;

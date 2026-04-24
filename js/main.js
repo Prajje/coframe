@@ -245,15 +245,23 @@
       statsList.classList.toggle('has-data', hasAny);
 
       // Engaged state: only the leader with ≥ threshold hover gets engaged.
-      cards.forEach(c => c.classList.remove('engaged'));
+      cards.forEach(c => { c.classList.remove('engaged', 'featured'); });
       let topId = null;
       if (hasAny) {
+        // Reorder the grid by dwell rank — leader first.
+        entries.forEach((e, i) => {
+          const el = cardsById.get(e.id);
+          if (el) el.style.order = String(i);
+        });
         const top = entries[0];
         topId = top.id;
         if (top.ms >= ENGAGE_THRESHOLD_MS) {
           const el = cardsById.get(top.id);
-          if (el) el.classList.add('engaged');
+          if (el) el.classList.add('engaged', 'featured');
         }
+      } else {
+        // No data yet — restore default DOM order.
+        cards.forEach(c => { c.style.order = ''; });
       }
       // Highlight matching bullets in the Experience timeline
       highlightMatchingBullets(topId);

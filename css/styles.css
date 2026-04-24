@@ -1191,46 +1191,141 @@ section { position: relative; z-index: 1; }
    ========================================================= */
 .node-body li.attention-match {
   color: var(--text);
-  padding-left: 28px;
-  background: linear-gradient(
-    90deg,
-    rgba(74, 227, 135, 0.10) 0%,
-    rgba(74, 227, 135, 0.03) 60%,
-    transparent 100%
-  );
-  border-radius: 4px;
-  margin-left: -8px;
-  padding-right: 8px;
-  transition: background 0.5s var(--ease), padding-left 0.4s var(--ease), color 0.3s var(--ease);
+  position: relative;
+  padding: 6px 12px 6px 30px;
+  margin: 2px -12px;
+  border-radius: 6px;
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(74, 227, 135, 0.02) 0%,
+      rgba(74, 227, 135, 0.18) 40%,
+      rgba(74, 227, 135, 0.26) 50%,
+      rgba(74, 227, 135, 0.18) 60%,
+      rgba(74, 227, 135, 0.02) 100%
+    );
+  background-size: 260% 100%;
+  background-position: -40% 50%;
+  box-shadow: inset 0 0 0 1px rgba(74, 227, 135, 0.22);
+  animation: bullet-sweep 4.6s ease-in-out infinite;
+  transition: padding 0.3s var(--ease), margin 0.3s var(--ease), color 0.3s var(--ease), box-shadow 0.4s var(--ease);
+  z-index: 0;
 }
+@keyframes bullet-sweep {
+  0%   { background-position: -40% 50%; }
+  100% { background-position: 140% 50%; }
+}
+
 .node-body li.attention-match::before {
+  top: 13px;
+  left: 10px;
   width: 14px;
+  height: 3px;
+  border-radius: 2px;
   background: var(--cf-green);
-  box-shadow: 0 0 10px rgba(74, 227, 135, 0.75);
-  left: 8px;
-  transition: width 0.3s var(--ease), background 0.3s var(--ease);
+  animation: marker-breathe 1.8s ease-in-out infinite;
+  z-index: 1;
 }
+@keyframes marker-breathe {
+  0%, 100% {
+    width: 14px;
+    box-shadow: 0 0 8px rgba(74, 227, 135, 0.55);
+  }
+  50% {
+    width: 22px;
+    box-shadow:
+      0 0 18px rgba(74, 227, 135, 1),
+      0 0 36px rgba(74, 227, 135, 0.45);
+  }
+}
+
+/* Match label — subtle floating indicator showing the feature is live */
+.node-body li.attention-match::after {
+  content: "TOP SIGNAL";
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: var(--cf-green);
+  padding: 3px 7px;
+  border: 1px solid rgba(74, 227, 135, 0.45);
+  border-radius: 3px;
+  background: rgba(74, 227, 135, 0.08);
+  opacity: 0;
+  animation: top-signal-fade-in 0.5s ease-out 0.2s forwards, top-signal-pulse 2.2s ease-in-out 0.7s infinite;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 2;
+}
+@keyframes top-signal-fade-in {
+  from { opacity: 0; transform: translateY(-50%) translateX(6px); }
+  to   { opacity: 1; transform: translateY(-50%) translateX(0); }
+}
+@keyframes top-signal-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(74, 227, 135, 0.35);
+    border-color: rgba(74, 227, 135, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 14px 0 rgba(74, 227, 135, 0.55);
+    border-color: rgba(74, 227, 135, 0.8);
+  }
+}
+
+/* One-shot BURST on transition into attention-match */
 .node-body li.attention-flash {
-  animation: bullet-flash 1.8s ease-out;
+  animation:
+    bullet-sweep 4.6s ease-in-out infinite,
+    bullet-burst-nudge 0.9s ease-out;
 }
-@keyframes bullet-flash {
-  0% {
-    background: linear-gradient(90deg, rgba(74,227,135,0.32) 0%, rgba(74,227,135,0.16) 50%, rgba(74,227,135,0.05) 100%);
-    transform: translateX(6px);
-    box-shadow: 0 0 32px -6px rgba(74, 227, 135, 0.5);
-  }
-  20% {
-    background: linear-gradient(90deg, rgba(74,227,135,0.28) 0%, rgba(74,227,135,0.12) 50%, transparent 100%);
-    transform: translateX(3px);
-  }
-  100% {
-    background: linear-gradient(90deg, rgba(74,227,135,0.10) 0%, rgba(74,227,135,0.03) 60%, transparent 100%);
-    transform: translateX(0);
-    box-shadow: none;
-  }
+.node-body li.attention-flash > * { position: relative; z-index: 1; }
+.node-body li.attention-flash > .burst {
+  display: block;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 6px;
+  background:
+    radial-gradient(ellipse at left center,
+      rgba(74, 227, 135, 0.55) 0%,
+      rgba(74, 227, 135, 0.18) 40%,
+      transparent 75%);
+  animation: burst-bloom 1.6s ease-out forwards;
+  z-index: 0;
 }
+@keyframes burst-bloom {
+  0%   { opacity: 1; transform: scaleX(0.7); }
+  20%  { opacity: 1; transform: scaleX(1.05); }
+  100% { opacity: 0; transform: scaleX(1); }
+}
+@keyframes bullet-burst-nudge {
+  0%   { transform: translateX(0); }
+  20%  { transform: translateX(8px); }
+  100% { transform: translateX(0); }
+}
+
+/* On screens too narrow for the side label, hide it but keep the rest */
+@media (max-width: 720px) {
+  .node-body li.attention-match::after { display: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .node-body li.attention-flash { animation: none; }
+  .node-body li.attention-match,
+  .node-body li.attention-flash,
+  .node-body li.attention-match::before,
+  .node-body li.attention-match::after,
+  .node-body li.attention-flash > .burst {
+    animation: none !important;
+    transform: translateY(-50%) !important;
+  }
+  .node-body li.attention-match {
+    background-image: none;
+    background-color: rgba(74, 227, 135, 0.10);
+  }
 }
 
 /* =========================================================

@@ -269,9 +269,18 @@
         const was = li.classList.contains('attention-match');
         if (isMatch && !was) {
           li.classList.add('attention-match', 'attention-flash');
-          setTimeout(() => li.classList.remove('attention-flash'), FLASH_MS);
+          // Inject a one-shot burst overlay that animates and removes itself.
+          const burst = document.createElement('span');
+          burst.className = 'burst';
+          burst.setAttribute('aria-hidden', 'true');
+          li.appendChild(burst);
+          setTimeout(() => {
+            li.classList.remove('attention-flash');
+            if (burst.parentNode) burst.parentNode.removeChild(burst);
+          }, FLASH_MS);
         } else if (!isMatch && was) {
           li.classList.remove('attention-match', 'attention-flash');
+          li.querySelectorAll(':scope > .burst').forEach(b => b.remove());
         }
       });
     };

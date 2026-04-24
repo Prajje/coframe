@@ -189,6 +189,124 @@
     }
   }
 
+  // ---------- Card hover tracking + attention stats ----------
+  const cards = document.querySelectorAll('.cc-card[data-card-id]');
+  const statsList = document.getElementById('stats-bars');
+  if (cards.length && statsList) {
+    const STORE_KEY = 'coframe-hover-stats';
+    const ENGAGE_THRESHOLD_MS = 1500;
+
+    const loadStats = () => {
+      try {
+        const raw = sessionStorage.getItem(STORE_KEY);
+        return raw ? JSON.parse(raw) : {};
+      } catch (_) { return {}; }
+    };
+    const saveStats = (s) => {
+      try { sessionStorage.setItem(STORE_KEY, JSON.stringify(s)); } catch (_) {}
+    };
+
+    const totals = loadStats();
+    const cardsById = new Map();
+    cards.forEach(c => cardsById.set(c.dataset.cardId, c));
+
+    const fmt = (ms) => {
+      const s = ms / 1000;
+      return s < 10 ? s.toFixed(1) + 's' : Math.round(s) + 's';
+    };
+
+    const renderStats = () => {
+      const entries = [];
+      cards.forEach(c => {
+        entries.push({
+          id: c.dataset.cardId,
+          title: c.dataset.cardTitle,
+          ms: totals[c.dataset.cardId] || 0,
+        });
+      });
+      const max = Math.max(1, ...entries.map(e => e.ms));
+      const hasAny = entries.some(e => e.ms > 0);
+      entries.sort((a, b) => b.ms - a.ms);
+
+      statsList.innerHTML = '';
+      entries.forEach((e, i) => {
+        const isLeader = hasAny && i === 0 && e.ms > 0;
+        const pct = hasAny ? Math.max(4, (e.ms / max) * 100) : 0;
+        const li = document.createElement('li');
+        li.className = 'stats-row' + (isLeader ? ' leader' : '');
+        li.innerHTML =
+          '<div class="stats-title"><span class="stats-rank">' +
+          String(i + 1).padStart(2, '0') +
+          '</span>' + e.title + '</div>' +
+          '<div class="stats-bar-wrap"><div class="stats-bar-fill" style="width:' + pct + '%"></div></div>' +
+          '<div class="stats-value">' + (e.ms > 0 ? fmt(e.ms) : '—') + '</div>';
+        statsList.appendChild(li);
+      });
+      statsList.classList.toggle('has-data', hasAny);
+
+      // Engaged state: only the leader with ≥ threshold hover gets engaged.
+      cards.forEach(c => c.classList.remove('engaged'));
+      if (hasAny) {
+        const top = entries[0];
+        if (top.ms >= ENGAGE_THRESHOLD_MS) {
+          const el = cardsById.get(top.id);
+          if (el) el.classList.add('engaged');
+        }
+      }
+    };
+
+    // Per-card hover tracking with live dwell display
+    cards.forEach(card => {
+      const id = card.dataset.cardId;
+      const dwellEl = card.querySelector('.tag-dwell');
+      let hoverStart = null;
+      let rafId = null;
+
+      const tick = () => {
+        if (hoverStart === null) return;
+        const live = (totals[id] || 0) + (performance.now() - hoverStart);
+        if (dwellEl) dwellEl.textContent = fmt(live);
+        rafId = requestAnimationFrame(tick);
+      };
+
+      const begin = () => {
+        if (hoverStart !== null) return;
+        hoverStart = performance.now();
+        card.classList.add('hovering');
+        tick();
+      };
+      const end = () => {
+        if (hoverStart === null) return;
+        const delta = performance.now() - hoverStart;
+        hoverStart = null;
+        if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+        totals[id] = (totals[id] || 0) + delta;
+        saveStats(totals);
+        card.classList.remove('hovering');
+        if (dwellEl) dwellEl.textContent = '';
+        renderStats();
+      };
+
+      card.addEventListener('mouseenter', begin);
+      card.addEventListener('mouseleave', end);
+      // Touch: finger down = hover start, finger up = hover end
+      card.addEventListener('touchstart', (ev) => { begin(); }, { passive: true });
+      card.addEventListener('touchend', end);
+      card.addEventListener('touchcancel', end);
+    });
+
+    // Commit in-flight hover if the user scrolls/navigates away
+    window.addEventListener('beforeunload', () => {
+      cards.forEach(c => {
+        if (c.classList.contains('hovering')) {
+          c.dispatchEvent(new MouseEvent('mouseleave'));
+        }
+      });
+    });
+
+    renderStats();
+  }
+
   // ---------- GSAP niceties (parallax / fades) ----------
   if (window.gsap && window.ScrollTrigger && !prefersReduced) {
     window.gsap.registerPlugin(window.ScrollTrigger);

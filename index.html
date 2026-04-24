@@ -19,7 +19,7 @@
   <div class="ink-trail" aria-hidden="true"><span class="ink-fill"></span></div>
 
   <!-- ================= HERO ================= -->
-  <section class="hero" id="hero">
+  <section class="hero" id="hero" data-section="hero">
     <div class="hero-bg" aria-hidden="true">
       <canvas id="variation-grid"></canvas>
     </div>
@@ -57,8 +57,9 @@
     </div>
   </section>
 
+  <div class="reorderable-stack" id="reorderable-stack">
   <!-- ================= METRIC BAND ================= -->
-  <section class="metric-band">
+  <section class="metric-band" data-section="metrics" data-section-label="Key Metrics">
     <div class="metric">
       <span class="metric-value" data-count="100" data-suffix="+">0</span>
       <span class="metric-label">Live Baccarat tables</span>
@@ -82,7 +83,7 @@
   </section>
 
   <!-- ================= TIMELINE ================= -->
-  <section class="timeline-section" id="experience">
+  <section class="timeline-section" id="experience" data-section="experience" data-section-label="Experience">
     <div class="section-head">
       <p class="section-label">Experience</p>
       <h2 class="section-title">Four years of <span class="accent">production ML.</span></h2>
@@ -168,7 +169,7 @@
   </section>
 
   <!-- ================= SIGNATURE WORK ================= -->
-  <section class="signature-work" id="work">
+  <section class="signature-work" id="work" data-section="work" data-section-label="Signature Work">
     <div class="section-head">
       <p class="section-label">Signature Work</p>
       <h2 class="section-title">A few things I've <span class="accent">built &amp; shipped.</span></h2>
@@ -251,7 +252,7 @@
   </section>
 
   <!-- ================= ATTENTION STATS ================= -->
-  <section class="attention-stats" id="attention">
+  <section class="attention-stats" id="attention" data-section="attention" data-section-label="Attention Stats">
     <div class="section-head">
       <p class="section-label">Your attention</p>
       <h2 class="section-title">What caught your <span class="accent">eye.</span></h2>
@@ -260,11 +261,11 @@
     <ul class="stats-bars" id="stats-bars" aria-live="polite">
       <!-- rows injected by main.js -->
     </ul>
-    <p class="stats-empty" id="stats-empty">Hover over a card above to populate your signal.</p>
+    <p class="stats-empty" id="stats-empty">Hover over a card in <strong>Signature Work</strong> to populate your signal.</p>
   </section>
 
   <!-- ================= SKILLS + PUBS ================= -->
-  <section class="skills-pubs" id="skills">
+  <section class="skills-pubs" id="skills" data-section="skills" data-section-label="Stack &amp; Publications">
     <div class="skills-pane">
       <p class="section-label">Stack</p>
       <h2 class="section-title">Tools of the <span class="accent">trade.</span></h2>
@@ -345,7 +346,7 @@
   </section>
 
   <!-- ================= DEAR COFRAME ================= -->
-  <section class="dear-coframe" id="dear-coframe">
+  <section class="dear-coframe" id="dear-coframe" data-section="dear" data-section-label="Dear Coframe">
     <div class="letter">
       <p class="section-label">A letter</p>
       <p class="salutation">Dear <span class="cf-word cf-pulse">Coframe</span>,</p>
@@ -378,8 +379,10 @@
     </div>
   </section>
 
+  </div><!-- /.reorderable-stack -->
+
   <!-- ================= CLOSING ================= -->
-  <section class="closing" id="resume">
+  <section class="closing" id="resume" data-section="closing" data-section-label="Resume &amp; Contact">
     <div class="closing-inner">
       <p class="section-label section-label-light">The ask</p>
       <h2 class="big-headline" aria-label="Optimize the future.">

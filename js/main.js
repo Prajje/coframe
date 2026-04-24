@@ -307,6 +307,242 @@
     renderStats();
   }
 
+  // ---------- Section attention tracking + Live Signal HUD ----------
+  const sections = document.querySelectorAll('section[data-section]');
+  const stack = document.getElementById('reorderable-stack');
+  if (sections.length) {
+    const SECTION_STORE = 'coframe-section-stats';
+    const ORDER_STORE = 'coframe-layout-order';
+    const REORDERABLE = ['metrics', 'experience', 'work', 'attention', 'skills', 'dear'];
+    const ORIGINAL_ORDER = REORDERABLE.slice();
+
+    const loadObj = (key) => {
+      try { return JSON.parse(sessionStorage.getItem(key) || '{}'); } catch (_) { return {}; }
+    };
+    const saveObj = (key, v) => {
+      try { sessionStorage.setItem(key, JSON.stringify(v)); } catch (_) {}
+    };
+
+    const sectionTotals = loadObj(SECTION_STORE);
+    const layoutState = loadObj(ORDER_STORE); // { optimized: bool, order: [ids] }
+
+    const sectionById = new Map();
+    sections.forEach(s => sectionById.set(s.dataset.section, s));
+
+    const fmtMs = (ms) => {
+      const s = ms / 1000;
+      if (s < 10) return s.toFixed(1) + 's';
+      if (s < 60) return Math.round(s) + 's';
+      const m = Math.floor(s / 60);
+      return m + 'm' + String(Math.round(s % 60)).padStart(2, '0');
+    };
+
+    // ---- Build HUD ----
+    const hud = document.createElement('div');
+    hud.className = 'signal-hud';
+    hud.setAttribute('aria-label', 'Live attention signal');
+    hud.innerHTML =
+      '<button class="hud-dot-btn" aria-label="Expand signal HUD"></button>' +
+      '<div class="hud-header">' +
+        '<span class="hud-title">Live Signal</span>' +
+        '<div class="hud-controls">' +
+          '<button class="hud-btn-icon" data-action="min" aria-label="Minimize">_</button>' +
+          '<button class="hud-btn-icon" data-action="close" aria-label="Dismiss">×</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="hud-body">' +
+        '<ul class="hud-bars" id="hud-bars"></ul>' +
+        '<div class="hud-cta-row">' +
+          '<button class="hud-cta" id="hud-optimize">Optimize layout</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(hud);
+
+    const toast = document.createElement('div');
+    toast.className = 'signal-toast';
+    toast.setAttribute('role', 'status');
+    document.body.appendChild(toast);
+    const showToast = (msg) => {
+      toast.textContent = msg;
+      toast.classList.add('visible');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove('visible'), 2400);
+    };
+
+    const barsList = hud.querySelector('#hud-bars');
+    const optimizeBtn = hud.querySelector('#hud-optimize');
+    const dotBtn = hud.querySelector('.hud-dot-btn');
+
+    // HUD appears after 3s unless dismissed
+    if (sessionStorage.getItem('coframe-hud-dismissed') !== '1') {
+      setTimeout(() => hud.classList.add('visible'), 3000);
+    }
+    hud.querySelector('[data-action="min"]').addEventListener('click', () => {
+      hud.classList.add('minimized');
+    });
+    hud.querySelector('[data-action="close"]').addEventListener('click', () => {
+      hud.classList.remove('visible');
+      sessionStorage.setItem('coframe-hud-dismissed', '1');
+    });
+    dotBtn.addEventListener('click', () => hud.classList.remove('minimized'));
+
+    // ---- Live dwell updater (while mouse is inside a section) ----
+    let activeSection = null;
+    let activeStart = null;
+
+    const renderHUD = () => {
+      const entries = [];
+      sections.forEach(sec => {
+        const id = sec.dataset.section;
+        const base = sectionTotals[id] || 0;
+        const live = (activeSection === id && activeStart !== null)
+          ? (performance.now() - activeStart) : 0;
+        entries.push({
+          id,
+          label: sec.dataset.sectionLabel || id,
+          ms: base + live,
+        });
+      });
+      const max = Math.max(1, ...entries.map(e => e.ms));
+      entries.sort((a, b) => b.ms - a.ms);
+      const hasAny = entries.some(e => e.ms > 0);
+
+      barsList.innerHTML = '';
+      entries.forEach((e, i) => {
+        const pct = hasAny ? Math.max(2, (e.ms / max) * 100) : 0;
+        const isLeader = hasAny && i === 0 && e.ms > 0;
+        const li = document.createElement('li');
+        li.className = 'hud-row' + (isLeader ? ' leader' : '');
+        li.innerHTML =
+          '<span class="hud-row-label">' + e.label + '</span>' +
+          '<span class="hud-row-time">' + (e.ms > 0 ? fmtMs(e.ms) : '—') + '</span>' +
+          '<span class="hud-row-track"><span class="hud-row-fill" style="width:' + pct + '%"></span></span>';
+        barsList.appendChild(li);
+      });
+    };
+
+    let rafHandle = null;
+    const rafLoop = () => {
+      renderHUD();
+      rafHandle = requestAnimationFrame(rafLoop);
+    };
+    const startRaf = () => { if (!rafHandle) rafHandle = requestAnimationFrame(rafLoop); };
+    const stopRaf = () => { if (rafHandle) { cancelAnimationFrame(rafHandle); rafHandle = null; } };
+
+    sections.forEach(sec => {
+      const id = sec.dataset.section;
+      sec.addEventListener('mouseenter', () => {
+        activeSection = id;
+        activeStart = performance.now();
+        startRaf();
+      });
+      sec.addEventListener('mouseleave', () => {
+        if (activeSection === id && activeStart !== null) {
+          const delta = performance.now() - activeStart;
+          sectionTotals[id] = (sectionTotals[id] || 0) + delta;
+          saveObj(SECTION_STORE, sectionTotals);
+        }
+        activeSection = null;
+        activeStart = null;
+        stopRaf();
+        renderHUD();
+      });
+      // Touch fallback: a tap-hold on mobile counts as entering the section
+      sec.addEventListener('touchstart', () => {
+        activeSection = id;
+        activeStart = performance.now();
+        startRaf();
+      }, { passive: true });
+      sec.addEventListener('touchend', () => {
+        if (activeSection === id && activeStart !== null) {
+          sectionTotals[id] = (sectionTotals[id] || 0) + (performance.now() - activeStart);
+          saveObj(SECTION_STORE, sectionTotals);
+        }
+        activeSection = null; activeStart = null; stopRaf(); renderHUD();
+      });
+    });
+
+    // ---- Reorder logic ----
+    const applyOrder = (order) => {
+      if (!stack) return;
+      order.forEach(id => {
+        const el = sectionById.get(id);
+        if (el && el.parentElement === stack) stack.appendChild(el);
+      });
+    };
+
+    const optimizeLayout = () => {
+      const weights = REORDERABLE.map(id => ({ id, ms: sectionTotals[id] || 0 }));
+      weights.sort((a, b) => b.ms - a.ms);
+      const newOrder = weights.map(w => w.id);
+
+      const doReorder = () => {
+        applyOrder(newOrder);
+        layoutState.optimized = true;
+        layoutState.order = newOrder;
+        saveObj(ORDER_STORE, layoutState);
+        optimizeBtn.textContent = 'Restore original';
+        optimizeBtn.classList.add('secondary');
+        showToast('Layout optimized for your attention ✓');
+      };
+
+      if (prefersReduced) { doReorder(); return; }
+      stack.classList.add('reordering');
+      setTimeout(() => {
+        doReorder();
+        requestAnimationFrame(() => stack.classList.remove('reordering'));
+      }, 450);
+    };
+
+    const restoreLayout = () => {
+      const doRestore = () => {
+        applyOrder(ORIGINAL_ORDER);
+        layoutState.optimized = false;
+        layoutState.order = ORIGINAL_ORDER.slice();
+        saveObj(ORDER_STORE, layoutState);
+        optimizeBtn.textContent = 'Optimize layout';
+        optimizeBtn.classList.remove('secondary');
+        showToast('Layout restored');
+      };
+      if (prefersReduced) { doRestore(); return; }
+      stack.classList.add('reordering');
+      setTimeout(() => {
+        doRestore();
+        requestAnimationFrame(() => stack.classList.remove('reordering'));
+      }, 450);
+    };
+
+    optimizeBtn.addEventListener('click', () => {
+      if (layoutState.optimized) restoreLayout();
+      else {
+        // Require at least 1.5s total signal before allowing optimize
+        const total = Object.values(sectionTotals).reduce((a, b) => a + b, 0);
+        if (total < 1500) {
+          showToast('Hover through the page first to build signal');
+          return;
+        }
+        optimizeLayout();
+      }
+    });
+
+    // Restore prior optimized order if the user had one this session
+    if (layoutState.optimized && Array.isArray(layoutState.order)) {
+      applyOrder(layoutState.order);
+      optimizeBtn.textContent = 'Restore original';
+      optimizeBtn.classList.add('secondary');
+    }
+
+    // Commit any in-flight section dwell on unload
+    window.addEventListener('beforeunload', () => {
+      if (activeSection && activeStart !== null) {
+        sectionTotals[activeSection] = (sectionTotals[activeSection] || 0) + (performance.now() - activeStart);
+        saveObj(SECTION_STORE, sectionTotals);
+      }
+    });
+
+    renderHUD();
+  }
+
   // ---------- GSAP niceties (parallax / fades) ----------
   if (window.gsap && window.ScrollTrigger && !prefersReduced) {
     window.gsap.registerPlugin(window.ScrollTrigger);
